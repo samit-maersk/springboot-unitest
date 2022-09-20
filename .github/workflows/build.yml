@@ -22,7 +22,7 @@ jobs:
     - name: Upload Artifact (jar)
       uses: actions/upload-artifact@v2
       with:
-        name: springboot-junit-jar
+        name: ${{ github.event.repository.name }}-jar
         path: ${{ github.workspace }}/target/*.jar
         if-no-files-found: error
 
@@ -31,20 +31,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
+
     - name: Download Artifact (Jar)
       uses: actions/download-artifact@v2
       with:
-        name: springboot-junit-jar
+        name: ${{ github.event.repository.name }}-jar
         path: target/
-    # move this steps to maven build
+
+    # move this steps to maven build and convert this github script
     - name: Custom Versioning
       id: custom-versioning
       run: |
         version=1.0.$(date "+%Y%m%d%H%M")
         echo "VERSION=${version,,}" >> $GITHUB_ENV
         echo ::set-output name=VERSION::$version
+
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
+
     - name: Extract metadata (tags, labels) for Docker
       id: meta
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
@@ -71,7 +75,7 @@ jobs:
     - name: trivy scan
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: '${{ steps.meta.outputs.tags[0] }}'
+        image-ref: 'ghcr.io/${{ github.repository }}'
         format: 'table'
         exit-code: '0'
         ignore-unfixed: true
