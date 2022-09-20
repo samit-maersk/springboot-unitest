@@ -56,8 +56,6 @@ jobs:
         images: ghcr.io/${{ github.repository }}
         tags: |
           type=raw,value=${{ steps.custom-versioning.outputs.VERSION }}
-          #type=ref,event=branch
-          #type=sha
 
     - name: Docker Build
       uses: docker/build-push-action@v3
