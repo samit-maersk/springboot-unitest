@@ -24,13 +24,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
-    - custom-versioning
+    - name: custom-versioning
+      id: custom-versioning
       if: ${{ github.ref != 'refs/heads/main' }}
       run: |
         version=$(date "+%Y.%m.%d.%H.%M")
         echo "VERSION=${version,,}" >> $GITHUB_ENV
         echo ::set-output name=VERSION::$version
-    - custom-versioning
+    - name: custom-versioning
+      id: custom-versioning
       if: ${{ github.ref == 'refs/heads/main'  }}
       run: |
         version=1.0.$(date "+%Y%m%d%H%M")
