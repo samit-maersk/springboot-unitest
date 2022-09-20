@@ -63,7 +63,7 @@ jobs:
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         #outputs: type=docker,dest=/tmp/image.tar # export as tar and build docker image with docker load --input /tmp/image.tar
-    - name: debug
+    - name: docker images ls
       run: |
         #docker load --input /tmp/image.tar
         docker image ls -a
@@ -71,7 +71,7 @@ jobs:
     - name: trivy scan
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: '${{ steps.meta.outputs.tags }}'
+        image-ref: '${{ steps.meta.outputs.tags[0] }}'
         format: 'table'
         exit-code: '0'
         ignore-unfixed: true
