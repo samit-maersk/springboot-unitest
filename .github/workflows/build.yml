@@ -48,7 +48,7 @@ jobs:
       id: meta
       uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
       with:
-        images: ${{ github.repository }}
+        images: ghcr.io/${{ github.repository }}
         tags: |
           type=raw,value=${{ steps.custom-versioning.outputs.VERSION }}
 
@@ -56,40 +56,36 @@ jobs:
       uses: docker/build-push-action@v3
       with:
         context: .
-        push: false
+        load: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        outputs: type=docker,dest=/tmp/image.tar
+        #outputs: type=docker,dest=/tmp/image.tar
     - name: debug
       run: |
-        echo 'tags: ${{ steps.meta.outputs.tags }}'
-        echo 'labels: ${{ steps.meta.outputs.labels }}'
+        #docker load --input /tmp/image.tar
         docker image ls -a
-        ls -al
-        ls -al target/
-        
-        docker load --input /tmp/image.tar
-        docker image ls -a
-        
+
     - name: trivy scan
       uses: aquasecurity/trivy-action@master
       with:
         image-ref: '${{ steps.meta.outputs.tags }}'
         format: 'table'
-        exit-code: '1'
+        exit-code: '0'
         ignore-unfixed: true
         vuln-type: 'os,library'
         severity: 'CRITICAL,HIGH'
+
     - name: Log in to the Container registry
       uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
       with:
-        registry: ghcr.io
+        registry: 'ghcr.io'
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
-    - name: Docker Push
+
+    - name: Build and push
       uses: docker/build-push-action@v3
       with:
         context: .
-        push: false
+        #platforms: linux/amd64,linux/arm64
+        push: true
         tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
