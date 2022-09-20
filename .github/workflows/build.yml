@@ -6,7 +6,7 @@ on:
       - main
       - 'releases/**'
 jobs:
-  maven:
+  maven-build:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
@@ -22,20 +22,21 @@ jobs:
     - name: Upload Artifact (jar)
       uses: actions/upload-artifact@v2
       with:
-        name: jar
+        name: springboot-junit-jar
         path: ${{ github.workspace }}/target/*.jar
         if-no-files-found: error
 
   docker:
-    needs: maven
+    needs: [maven-build]
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: Download Artifact (Jar)
       uses: actions/download-artifact@v2
       with:
-        name: jar
+        name: springboot-junit-jar
         path: target/
+    # move this steps to maven build
     - name: Custom Versioning
       id: custom-versioning
       run: |
@@ -51,6 +52,8 @@ jobs:
         images: ghcr.io/${{ github.repository }}
         tags: |
           type=raw,value=${{ steps.custom-versioning.outputs.VERSION }}
+          type=ref,event=branch
+          type=sha
 
     - name: Docker Build
       uses: docker/build-push-action@v3
@@ -59,7 +62,7 @@ jobs:
         load: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        #outputs: type=docker,dest=/tmp/image.tar
+        #outputs: type=docker,dest=/tmp/image.tar # export as tar and build docker image with docker load --input /tmp/image.tar
     - name: debug
       run: |
         #docker load --input /tmp/image.tar
@@ -85,7 +88,8 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v3
       with:
-        context: .
+        #context: .
         #platforms: linux/amd64,linux/arm64
-        push: true
+        push: true #${{ github.event_name != 'pull_request' }} ${{ github.ref != 'refs/heads/main' }}
         tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
