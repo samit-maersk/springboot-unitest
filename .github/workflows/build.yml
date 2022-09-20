@@ -35,7 +35,7 @@ jobs:
       uses: actions/download-artifact@v2
       with:
         name: jar
-        path: ${{ github.workspace }}/target
+        path: target/
     - name: Custom Versioning
       id: custom-versioning
       run: |
@@ -59,13 +59,18 @@ jobs:
         push: false
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        outputs: type=docker,dest=/tmp/image.tar
     - name: debug
       run: |
         echo 'tags: ${{ steps.meta.outputs.tags }}'
         echo 'labels: ${{ steps.meta.outputs.labels }}'
-        docker images -a
+        docker image ls -a
         ls -al
-        ls -al /target
+        ls -al target/
+        
+        docker load --input /tmp/image.tar
+        docker image ls -a
+        
     - name: trivy scan
       uses: aquasecurity/trivy-action@master
       with:
